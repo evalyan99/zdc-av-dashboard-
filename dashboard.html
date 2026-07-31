@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZDC 2026 Fall · AV Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --surface: #ffffff;
+      --surface-alt: #f7f8fa;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #57606a;
+      --accent: #3b82d4;
+      --accent-soft: #e8f1fb;
+      --success: #1a7f37;
+      --success-soft: #e7f6ec;
+      --warning: #9a6700;
+      --warning-soft: #fff8c5;
+      --danger: #cf222e;
+      --danger-soft: #ffebe9;
+      --empty: #6e7781;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 20px 40px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 720px;
+    }
+
+    .timestamp {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      min-width: 220px;
+    }
+
+    .timestamp strong,
+    .timestamp span {
+      display: block;
+    }
+
+    .timestamp span {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .controls,
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    select,
+    input,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      margin-top: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+
+    .panel > p {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 14px 12px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-ready {
+      color: var(--success);
+      background: var(--success-soft);
+    }
+
+    .badge-updated {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .badge-hold {
+      color: var(--warning);
+      background: var(--warning-soft);
+    }
+
+    .badge-fresh {
+      color: var(--accent);
+      background: var(--accent-soft);
+      margin-left: 8px;
+    }
+
+    .badge-changed {
+      color: var(--success);
+      background: var(--success-soft);
+      margin-left: 8px;
+    }
+
+    .row-fresh {
+      background: #f5f9ff;
+    }
+
+    .row-changed {
+      background: #f3fbf5;
+    }
+
+    .file-name {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .file-meta,
+    .note-list li,
+    .download a,
+    .empty-state {
+      color: var(--muted);
+    }
+
+    .note-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .download a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .download a:hover,
+    .top-link:hover {
+      text-decoration: underline;
+    }
+
+    .details-toggle {
+      margin-top: 8px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .details-row {
+      background: var(--surface-alt);
+    }
+
+    .details-cell {
+      padding-top: 0;
+    }
+
+    .av-details {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .av-details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 16px;
+    }
+
+    .av-detail-group strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .av-detail-group span {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: pre-line;
+    }
+
+    .ops-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-alt);
+      padding: 14px;
+    }
+
+    .timeline-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .timeline-item span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: var(--surface-alt);
+    }
+
+    .top-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+      .controls,
+      .summary,
+      .ops-grid,
+      .header,
+      .av-details-grid {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .header {
+        gap: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div>
+        <h1>ZDC 2026 Fall · AV Daily Projection Dashboard</h1>
+        <p>
+          Operator view for approved content, daily changes, and session AV requirements. Use the separate
+          admin page to update data.
+        </p>
+      </div>
+      <div>
+        <aside class="timestamp">
+          <strong>Last dashboard refresh</strong>
+          <span id="last-refresh">Loading…</span>
+        </aside>
+        <div style="margin-top: 10px; text-align: right;">
+          <span style="font-size: 12px; color: var(--muted);">Refresh page to load latest data</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="controls">
+      <div>
+        <label for="day">Event day</label>
+        <select id="day">
+          <option value="all">All days</option>
+        </select>
+      </div>
+      <div>
+        <label for="status">Status</label>
+        <select id="status">
+          <option value="approved">Approved for projection</option>
+          <option value="updated">Updated today</option>
+          <option value="hold">On hold</option>
+          <option value="all">All files</option>
+        </select>
+      </div>
+      <div>
+        <label for="search">Search file or session</label>
+        <input id="search" type="text" value="" placeholder="Keynote, recap, panel...">
+      </div>
+      <div>
+        <label for="sort">Sort</label>
+        <select id="sort">
+          <option value="updatedAt">Most recently updated</option>
+          <option value="sessionTime">Session time</option>
+          <option value="sessionTitle">File name</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="summary">
+      <article class="stat">
+        <span>Approved now</span>
+        <strong id="stat-approved">0</strong>
+      </article>
+      <article class="stat">
+        <span>Updated today</span>
+        <strong id="stat-updated">0</strong>
+      </article>
+      <article class="stat">
+        <span>Videos</span>
+        <strong id="stat-videos">0</strong>
+      </article>
+      <article class="stat">
+        <span>Awaiting final</span>
+        <strong id="stat-hold">0</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Approved for projection now</h2>
+      <p>Direct downloads can point to the latest file in Box. The list below is filterable by day, status, search term, and sort order.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Session</th>
+            <th>Status</th>
+            <th>Updated</th>
+            <th>Operator notes</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody id="file-table-body"></tbody>
+      </table>
+      <div id="file-empty-state" class="empty-state" hidden>No files match the current filters.</div>
+    </section>
+
+    <section class="ops-grid">
+      <article class="panel">
+        <h2>Today's change log</h2>
+        <p>A simple operator-focused feed makes changes obvious without requiring the AV team to browse Box folders manually.</p>
+        <div id="change-log" class="timeline"></div>
+        <div id="change-log-empty" class="empty-state" hidden>No change log entries are available for this day.</div>
+      </article>
+
+      <aside class="panel">
+        <h2>Operational guidance</h2>
+        <p>This panel shows the type of instructions that help the AV team act quickly and consistently.</p>
+        <ul class="note-list">
+          <li>Only download files marked <strong>Ready</strong> or <strong>Updated</strong>.</li>
+          <li>Use the most recent timestamp when replacing a local copy.</li>
+          <li>Keep one local backup of any file already used on stage.</li>
+          <li>Check this page before each session block.</li>
+          <li>Open <strong>View AV details</strong> for microphone, stage, timer, clicker, and confidence monitor requirements.</li>
+        </ul>
+      </aside>
+    </section>
+  </div>
+
+  <script>
+    const daySelect = document.getElementById('day');
+    const statusSelect = document.getElementById('status');
+    const searchInput = document.getElementById('search');
+    const sortSelect = document.getElementById('sort');
+    const fileTableBody = document.getElementById('file-table-body');
+    const fileEmptyState = document.getElementById('file-empty-state');
+    const changeLog = document.getElementById('change-log');
+    const changeLogEmpty = document.getElementById('change-log-empty');
+    const lastRefresh = document.getElementById('last-refresh');
+    const statApproved = document.getElementById('stat-approved');
+    const statUpdated = document.getElementById('stat-updated');
+    const statVideos = document.getElementById('stat-videos');
+    const statHold = document.getElementById('stat-hold');
+    function formatSessionTime(value) {
+      if (!value) return value;
+      if (/\d{1,2}:\d{2}\s*(AM|PM)/i.test(value)) return value;
+      const parts = value.match(/^(\d{2}):(\d{2})$/);
+      if (!parts) return value;
+      let h = Number(parts[1]);
+      const min = parts[2];
+      const mer = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${min} ${mer}`;
+    }
+
+    const statusLabels = {
+      ready: 'Ready',
+      updated: 'Updated',
+      hold: 'On hold'
+    };
+
+    const freshnessLabels = {
+      new: 'New',
+      changed: 'Changed'
+    };
+
+    const statusClasses = {
+      ready: 'badge badge-ready',
+      updated: 'badge badge-updated',
+      hold: 'badge badge-hold'
+    };
+
+    let dashboardData;
+
+    function parseUpdatedAt(value) {
+      const match = value.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (!match) {
+        return -1;
+      }
+
+      let hour = Number(match[1]) % 12;
+      const minutes = Number(match[2]);
+      const meridiem = match[3].toUpperCase();
+
+      if (meridiem === 'PM') {
+        hour += 12;
+      }
+
+      return hour * 60 + minutes;
+    }
+
+    function parseSessionTime(value) {
+      if (!value) return 0;
+      // HH:MM 24-hour
+      const hhmm = value.match(/^(\d{2}):(\d{2})$/);
+      if (hhmm) return Number(hhmm[1]) * 60 + Number(hhmm[2]);
+      // H:MM AM/PM
+      const ampm = value.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (!ampm) return 0;
+      let h = Number(ampm[1]) % 12;
+      if (ampm[3].toUpperCase() === 'PM') h += 12;
+      return h * 60 + Number(ampm[2]);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function formatRefreshLabel(value) {
+      if (!value) {
+        return '';
+      }
+
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      const datePart = date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      const timePart = date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+
+      return `${datePart} · ${timePart}`;
+    }
+
+    function getSelectedDay() {
+      if (daySelect.value === 'all') {
+        return {
+          id: 'all',
+          files: dashboardData.days.flatMap((day) => day.files),
+          changeLog: dashboardData.days.flatMap((day) => day.changeLog)
+        };
+      }
+      return dashboardData.days.find((day) => day.id === daySelect.value) || dashboardData.days[0];
+    }
+
+    function getFilteredFiles(day) {
+      const statusFilter = statusSelect.value;
+      const searchValue = searchInput.value.trim().toLowerCase();
+      const files = day.files.filter((file) => {
+        if (statusFilter === 'approved' && !['ready', 'updated'].includes(file.status)) {
+          return false;
+        }
+
+        if (statusFilter === 'updated' && file.status !== 'updated') {
+          return false;
+        }
+
+        if (statusFilter === 'hold' && file.status !== 'hold') {
+          return false;
+        }
+
+        if (!searchValue) {
+          return true;
+        }
+
+        const haystack = [file.sessionTitle, file.fileName, file.sessionTime, file.type]
+          .join(' ')
+          .toLowerCase();
+
+        return haystack.includes(searchValue);
+      });
+
+      const sorted = [...files];
+      const sortKey = sortSelect.value;
+
+      sorted.sort((left, right) => {
+        if (sortKey === 'updatedAt') {
+          return parseUpdatedAt(right.updatedAt) - parseUpdatedAt(left.updatedAt);
+        }
+
+        if (sortKey === 'sessionTime') {
+          return parseSessionTime(left.sessionTime) - parseSessionTime(right.sessionTime);
+        }
+
+        return left.sessionTitle.localeCompare(right.sessionTitle);
+      });
+
+      return sorted;
+    }
+
+    function renderStats(day) {
+      statApproved.textContent = day.files.filter((file) => ['ready', 'updated'].includes(file.status)).length;
+      statUpdated.textContent = day.files.filter((file) => file.status === 'updated').length;
+      statVideos.textContent = day.files.filter((file) => file.type === 'Video').length;
+      statHold.textContent = day.files.filter((file) => file.status === 'hold').length;
+    }
+
+    function renderFileRows(files, dayId) {
+      files.forEach((file, rowIndex) => {
+        const row = document.createElement('tr');
+        const freshnessClass = file.freshness === 'new' ? 'row-fresh' : file.freshness === 'changed' ? 'row-changed' : '';
+        const freshnessBadge = file.freshness
+          ? `<span class="badge ${file.freshness === 'new' ? 'badge-fresh' : 'badge-changed'}">${freshnessLabels[file.freshness]}</span>`
+          : '';
+
+        if (freshnessClass) {
+          row.className = freshnessClass;
+        }
+
+        const hasAvDetails = file.avDetails && Object.values(file.avDetails).some((value) => value);
+        const detailsId = `av-details-${escapeHtml(dayId)}-${rowIndex}`;
+        row.innerHTML = `
+          <td>
+            <div class="file-name">${escapeHtml(formatSessionTime(file.sessionTime))} · ${escapeHtml(file.sessionTitle)}${freshnessBadge}</div>
+            <div class="file-meta">${escapeHtml(file.fileName)} · ${escapeHtml(file.type)}</div>
+            ${hasAvDetails ? `<button type="button" class="details-toggle" aria-expanded="false" data-details-id="${detailsId}">View AV details</button>` : ''}
+          </td>
+          <td><span class="${statusClasses[file.status]}">${statusLabels[file.status]}</span></td>
+          <td>${escapeHtml(file.updatedAt)}<br><span class="file-meta">${escapeHtml(file.updatedNote)}</span></td>
+          <td>
+            <ul class="note-list">
+              ${(Array.isArray(file.notes) ? file.notes : []).map((note) => `<li>${escapeHtml(note)}</li>`).join('')}
+            </ul>
+          </td>
+          <td class="download"><a href="${escapeHtml(file.downloadUrl)}">${file.status === 'hold' ? 'Awaiting upload' : 'Download latest'}</a></td>
+        `;
+        fileTableBody.appendChild(row);
+
+        if (hasAvDetails) {
+          const detailsRow = document.createElement('tr');
+          detailsRow.className = 'details-row';
+          detailsRow.id = detailsId;
+          detailsRow.hidden = true;
+          detailsRow.innerHTML = `
+            <td class="details-cell" colspan="5">
+              <div class="av-details">
+                <div class="av-details-grid">
+                  <div class="av-detail-group"><strong>Microphones</strong><span>${escapeHtml(file.avDetails.microphones || 'Not specified')}</span></div>
+                  <div class="av-detail-group"><strong>Stage setup</strong><span>${escapeHtml(file.avDetails.stageSetup || 'Not specified')}</span></div>
+                  <div class="av-detail-group"><strong>Confidence monitor</strong><span>${escapeHtml(file.avDetails.confidenceMonitor || 'Not specified')}</span></div>
+                  <div class="av-detail-group"><strong>Clicker</strong><span>${escapeHtml(file.avDetails.clicker || 'Not specified')}</span></div>
+                  <div class="av-detail-group"><strong>Timer</strong><span>${escapeHtml(file.avDetails.timer || 'Not specified')}</span></div>
+                  <div class="av-detail-group"><strong>Special AV notes</strong><span>${escapeHtml(file.avDetails.specialNotes || 'Not specified')}</span></div>
+                </div>
+              </div>
+            </td>
+          `;
+          fileTableBody.appendChild(detailsRow);
+        }
+      });
+    }
+
+    function renderFiles(day) {
+      fileTableBody.innerHTML = '';
+
+      const isAllDays = daySelect.value === 'all';
+
+      if (isAllDays) {
+        let anyFiles = false;
+        dashboardData.days.forEach((d) => {
+          const files = getFilteredFiles(d);
+          if (!files.length) return;
+          anyFiles = true;
+
+          const separatorRow = document.createElement('tr');
+          separatorRow.innerHTML = `
+            <td colspan="5" style="padding: 12px 12px 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: var(--surface-alt); border-top: 2px solid var(--border);">
+              ${escapeHtml(d.label)}
+            </td>
+          `;
+          fileTableBody.appendChild(separatorRow);
+          renderFileRows(files, d.id);
+        });
+
+        fileEmptyState.hidden = anyFiles;
+        if (!anyFiles) fileEmptyState.hidden = false;
+      } else {
+        const files = getFilteredFiles(day);
+        if (!files.length) {
+          fileEmptyState.hidden = false;
+          return;
+        }
+        fileEmptyState.hidden = true;
+        renderFileRows(files, day.id);
+      }
+
+      fileTableBody.querySelectorAll('.details-toggle').forEach((button) => {
+        button.addEventListener('click', () => {
+          const detailsRow = document.getElementById(button.dataset.detailsId);
+          const isHidden = detailsRow.hidden;
+          detailsRow.hidden = !isHidden;
+          button.setAttribute('aria-expanded', String(isHidden));
+          button.textContent = isHidden ? 'Hide AV details' : 'View AV details';
+        });
+      });
+    }
+
+    function renderChangeLog(day) {
+      changeLog.innerHTML = '';
+
+      if (!day.changeLog.length) {
+        changeLogEmpty.hidden = false;
+        return;
+      }
+
+      changeLogEmpty.hidden = true;
+
+      day.changeLog.forEach((entry) => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = `
+          <strong>${escapeHtml(entry.time)} · ${escapeHtml(entry.title)}</strong>
+          <span>${escapeHtml(entry.description)}</span>
+        `;
+        changeLog.appendChild(item);
+      });
+    }
+
+    function render() {
+      const day = getSelectedDay();
+      lastRefresh.textContent = formatRefreshLabel(dashboardData.lastRefresh);
+      renderStats(day);
+      renderFiles(day);
+      renderChangeLog(day);
+    }
+
+    function populateDayOptions(days) {
+      daySelect.innerHTML = '<option value="all">All days</option>' + days
+        .map((day) => `<option value="${escapeHtml(day.id)}">${escapeHtml(day.label)}</option>`)
+        .join('');
+
+      const defaultDay = days[0];
+      if (!daySelect.value || !days.some((day) => day.id === daySelect.value)) {
+        daySelect.value = defaultDay.id;
+      }
+    }
+
+    function getEmbeddedDashboardData() {
+      return {
+        lastRefresh: '',
+        days: [
+          {
+            id: 'day-1',
+            label: 'Day 1 · October 6',
+            files: [
+              {
+                sessionTime: '08:30',
+                sessionTitle: 'Welcome & Opening Remarks',
+                fileName: 'FallDay1-0830 ZDC Welcome & Opening Remarks.pptx',
+                type: 'Presentation',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting final from presenter',
+                notes: ['Do not project until status changes to Ready'],
+                downloadUrl: '#',
+                avDetails: {
+                  microphones: '1 podium, 1 handheld backup',
+                  stageSetup: 'Center podium, confidence monitor downstage',
+                  confidenceMonitor: 'Yes, downstage center',
+                  clicker: 'No',
+                  timer: 'Yes, stage timer',
+                  specialNotes: ''
+                }
+              },
+              {
+                sessionTime: '09:00',
+                sessionTitle: 'Keynote Session',
+                fileName: 'FallDay1-0900 ZDC Keynote.pptx',
+                type: 'Presentation',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting final from presenter',
+                notes: ['Do not project until status changes to Ready'],
+                downloadUrl: '#'
+              }
+            ],
+            changeLog: [
+              { time: '8:00 AM', title: 'Dashboard ready for Day 1', description: 'Update file statuses and Box links before the event begins.' }
+            ]
+          },
+          {
+            id: 'day-2',
+            label: 'Day 2 · October 7',
+            files: [
+              {
+                sessionTime: '08:45',
+                sessionTitle: 'Day One Recap',
+                fileName: 'FallDay2-0845 ZDC Day One Recap.mp4',
+                type: 'Video',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting render',
+                notes: ['Audio level check required before playback', 'Store local backup on playback machine'],
+                downloadUrl: '#'
+              },
+              {
+                sessionTime: '09:30',
+                sessionTitle: 'General Session',
+                fileName: 'FallDay2-0930 ZDC General Session.pptx',
+                type: 'Presentation',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting final from presenter',
+                notes: ['Do not project until status changes to Ready'],
+                downloadUrl: '#'
+              }
+            ],
+            changeLog: [
+              { time: '8:00 AM', title: 'Day 2 placeholder ready', description: 'Update file statuses, Box links, and change log before Day 2 begins.' }
+            ]
+          },
+          {
+            id: 'day-3',
+            label: 'Day 3 · October 8',
+            files: [
+              {
+                sessionTime: '08:45',
+                sessionTitle: 'Day Two Recap',
+                fileName: 'FallDay3-0845 ZDC Day Two Recap.mp4',
+                type: 'Video',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting render',
+                notes: ['Audio level check required before playback', 'Store local backup on playback machine'],
+                downloadUrl: '#'
+              },
+              {
+                sessionTime: '09:00',
+                sessionTitle: 'Closing General Session',
+                fileName: 'FallDay3-0900 ZDC Closing General Session.pptx',
+                type: 'Presentation',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting final from presenter',
+                notes: ['Do not project until status changes to Ready'],
+                downloadUrl: '#'
+              },
+              {
+                sessionTime: '15:30',
+                sessionTitle: 'Closing Remarks',
+                fileName: 'FallDay3-1530 ZDC Closing Remarks.pptx',
+                type: 'Presentation',
+                status: 'hold',
+                updatedAt: 'Pending',
+                updatedNote: 'Awaiting final from presenter',
+                notes: ['Do not project until status changes to Ready'],
+                downloadUrl: '#'
+              }
+            ],
+            changeLog: [
+              { time: '8:00 AM', title: 'Day 3 placeholder ready', description: 'Update file statuses, Box links, and change log before Day 3 begins.' }
+            ]
+          }
+        ]
+      };
+    }
+
+    const BOX_DATA_URL = 'https://ibm.box.com/shared/static/vkwn7y1vl416tmgfc526i3zz1d3h39bk.json';
+
+    async function initialize() {
+      lastRefresh.textContent = 'Loading…';
+      try {
+        const response = await fetch(BOX_DATA_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        dashboardData = await response.json();
+      } catch (error) {
+        dashboardData = getEmbeddedDashboardData();
+        lastRefresh.textContent = 'Could not load live data — refresh to try again.';
+        populateDayOptions(dashboardData.days);
+        render();
+        return;
+      }
+      populateDayOptions(dashboardData.days);
+      render();
+    }
+
+    daySelect.addEventListener('change', render);
+    statusSelect.addEventListener('change', render);
+    searchInput.addEventListener('input', render);
+    sortSelect.addEventListener('change', render);
+
+    initialize();
+  </script>
+</body>
+</html>
