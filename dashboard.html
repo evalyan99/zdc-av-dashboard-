@@ -896,12 +896,12 @@
       };
     }
 
-    const BOX_DATA_URL = 'https://ibm.box.com/shared/static/vkwn7y1vl416tmgfc526i3zz1d3h39bk.json';
+    const DATA_URL = 'zdc-2026-fall-av-data.json';
 
     async function initialize() {
       lastRefresh.textContent = 'Loading…';
       try {
-        const response = await fetch(BOX_DATA_URL);
+        const response = await fetch(DATA_URL);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
